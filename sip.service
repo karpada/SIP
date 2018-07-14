@@ -4,6 +4,7 @@
 Description=SIP
 After=syslog.target network.target
 [Service]
+Environment="LC_ALL=C.UTF-8"
 ExecStart=/usr/bin/python /home/pi/SIP/sip.py
 Restart=on-abort
 WorkingDirectory=/home/pi/SIP/
