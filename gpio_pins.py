@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import sys
+from typing import List, Tuple
 
 # local module imports
 from blinker import signal
@@ -139,6 +140,7 @@ if gv.platform == "pi":
                 0,  21,
             ]
         else:
+            # <<<<<<<<<<<<< HERE >>>>>>>>>>>
             gv.pin_map = [#  Board numbering
                 0, #  offset for 1 based numbering
                 0,  0,
@@ -165,6 +167,9 @@ if gv.platform == "pi":
     else:
         print("Unknown pi pin revision.  Using pin mapping for rev 3")
 # fmt: on
+
+# (off_pin, on_pin)
+BERMAD_STATION_OFF_ON_PINS: List[Tuple[int, int]] = [(11, 13), (16, 18), (29, 31)]
 
 zone_change = signal("zone_change")
 
@@ -240,7 +245,17 @@ def setup_pins():
 
     #### setup GPIO pins as output or input ####
     try:
-        if gv.use_pigpio:
+        if BERMAD_STATION_OFF_ON_PINS:
+            for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
+                if gv.use_pigpio:
+                    pi.set_mode(off_pin, pigpio.OUTPUT)
+                    pi.set_mode(on_pin, pigpio.OUTPUT)
+                else:
+                    GPIO.setup(off_pin, GPIO.OUT)
+                    GPIO.setup(on_pin, GPIO.OUT)
+                pulse(off_pin)
+
+        elif gv.use_pigpio:
             pi.set_mode(pin_sr_noe, pigpio.OUTPUT)
             pi.set_mode(pin_sr_clk, pigpio.OUTPUT)
             pi.set_mode(pin_sr_dat, pigpio.OUTPUT)
@@ -296,6 +311,9 @@ def enableShiftRegisterOutput():
 # https://catalog.bermad.com/BERMAD%20Assets/Irrigation/Solenoids/IR-SOLENOID-S-392T-2W/IR_Accessories-Solenoid-S-392T-2W_Product-Page_English_2-2020_XSB.pdf
 def pulse(pinNum: int):
     #Serial.println(String("Pulse") + String(pinNum));
+    if pinNum not in gv.pin_map:
+        print(f"pinNum {pinNum} not in gv.pin_map", file=sys.stderr, flush=True)
+        return
     print(f"pulse {pinNum}", file=sys.stderr, flush=True)
     if gv.use_pigpio:
         pi.write(pinNum, 1)
@@ -351,7 +369,19 @@ def set_output():
             gv.output_srvals = [
                 1 - i for i in gv.output_srvals
             ]  #  invert logic of shift registers
-        disableShiftRegisterOutput()
-        setShiftRegister(gv.output_srvals)  # gv.srvals stores shift register state
-        enableShiftRegisterOutput()
+        if BERMAD_STATION_OFF_ON_PINS:
+            for s in range(gv.sd["nst"]):
+                station_id = gv.sd["nst"] - 1 - s
+                if station_id >= len(BERMAD_STATION_OFF_ON_PINS):
+                    print(f"Station {station_id} is not mapped to a BERMAD_STATION_OFF_ON_PINS pin pair", file=sys.stderr, flush=True)
+                    continue
+                off_pin, on_pin = BERMAD_STATION_OFF_ON_PINS[station_id]
+                if gv.output_srvals[station_id]:
+                    pulse(on_pin)
+                else:
+                    pulse(off_pin)
+        else:
+            disableShiftRegisterOutput()
+            setShiftRegister(gv.output_srvals)  # gv.srvals stores shift register state
+            enableShiftRegisterOutput()
         zone_change.send()
