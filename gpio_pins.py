@@ -169,7 +169,7 @@ if gv.platform == "pi":
 # fmt: on
 
 # (off_pin, on_pin)
-BERMAD_STATION_OFF_ON_PINS: List[Tuple[int, int]] = [(11, 13), (16, 18), (29, 31)]
+BERMAD_STATION_OFF_ON_PINS: List[Tuple[int, int]] = [(gv.pin_map[11], gv.pin_map[13]), (gv.pin_map[16], gv.pin_map[18]), (gv.pin_map[29], gv.pin_map[31])]
 
 zone_change = signal("zone_change")
 
