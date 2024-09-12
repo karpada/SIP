@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import time
+import sys
 
 # local module imports
 from blinker import signal
@@ -111,6 +113,7 @@ if gv.platform == "pi":
             ]
     elif rev == 3:
         # map 40 physical pins (1 based) with 0 for pins that do not have a gpio number
+        print(f"gpio_pins: pi rev==3, gv.use_pigpio={gv.use_pigpio}", file=sys.stderr, flush=True)
         if gv.use_pigpio:
             gv.pin_map = [ #  BMC numbering
                 0, #  offset for 1 based numbering
@@ -289,6 +292,21 @@ def enableShiftRegisterOutput():
     except Exception:
         pass
 
+# 0.06s pulse width is for Bermad S-392T-2W
+# https://catalog.bermad.com/BERMAD%20Assets/Irrigation/Solenoids/IR-SOLENOID-S-392T-2W/IR_Accessories-Solenoid-S-392T-2W_Product-Page_English_2-2020_XSB.pdf
+def pulse(pinNum: int):
+    #Serial.println(String("Pulse") + String(pinNum));
+    print(f"pulse {pinNum}", file=sys.stderr, flush=True)
+    if gv.use_pigpio:
+        pi.write(pinNum, 1)
+        time.sleep(0.060) # wait for latching
+        pi.write(pinNum, 0)
+    else:
+        GPIO.output(pinNum, GPIO.HIGH)
+        time.sleep(0.060) # wait for latching
+        GPIO.output(pinNum, GPIO.LOW)
+    # let things settle
+    time.sleep(0.020)
 
 def setShiftRegister(srvals):
     """Set the state of each output pin on the shift register from the srvals list."""
@@ -310,6 +328,7 @@ def setShiftRegister(srvals):
             GPIO.output(pin_sr_clk, GPIO.LOW)
             GPIO.output(pin_sr_lat, GPIO.LOW)
             for s in range(gv.sd["nst"]):
+                print(f's={s}, srvals[{gv.sd["nst"] - 1 - s}]={srvals[gv.sd["nst"] - 1 - s]}', file=sys.stderr, flush=True)
                 GPIO.output(pin_sr_clk, GPIO.LOW)
                 if srvals[gv.sd["nst"] - 1 - s]:
                     GPIO.output(pin_sr_dat, GPIO.HIGH)
