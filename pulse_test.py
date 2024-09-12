@@ -3,11 +3,12 @@ import time
 import argparse
 import RPi.GPIO as GPIO
 
-# Parse command line arguments
 parser = argparse.ArgumentParser(
     description='Pulse GPIO pins.\n\n'
                 'Example usage:\n'
-                '  python pulse_test.py 16 18 3 5 --pulse-width 1.5 --delay 0.2',
+                '  python pulse_test.py 16 18 3 5 --pulse-width 1.5 --delay 0.2\n\n'
+                'Refer to the GPIO pins layout here:\n'
+                '  https://webofthings.org/wp-content/uploads/2016/10/pi-gpio.png',
     formatter_class=argparse.RawTextHelpFormatter
 )
 parser.add_argument('pins', metavar='N', type=int, nargs='*', default=[16, 18], help='an integer for the GPIO pin')
