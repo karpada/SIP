@@ -376,6 +376,7 @@ def set_output():
                     print(f"Station {station_id} is not mapped to a BERMAD_STATION_OFF_ON_PINS pin pair", file=sys.stderr, flush=True)
                     continue
                 off_pin, on_pin = BERMAD_STATION_OFF_ON_PINS[station_id]
+                print(f"Station {station_id} (off_pin={off_pin}, on_pin={on_pin}) will be set {gv.output_srvals[station_id]} using pulse", file=sys.stderr, flush=True)
                 if gv.output_srvals[station_id]:
                     pulse(on_pin)
                 else:
