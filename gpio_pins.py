@@ -212,7 +212,6 @@ try:
 except NameError:
     pass
 
-
 def setup_pins():
     """
     Define and setup GPIO pins for shift register operation
@@ -245,17 +244,7 @@ def setup_pins():
 
     #### setup GPIO pins as output or input ####
     try:
-        if BERMAD_STATION_OFF_ON_PINS:
-            for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
-                if gv.use_pigpio:
-                    pi.set_mode(off_pin, pigpio.OUTPUT)
-                    pi.set_mode(on_pin, pigpio.OUTPUT)
-                else:
-                    GPIO.setup(off_pin, GPIO.OUT)
-                    GPIO.setup(on_pin, GPIO.OUT)
-                pulse(off_pin)
-
-        elif gv.use_pigpio:
+        if gv.use_pigpio:
             pi.set_mode(pin_sr_noe, pigpio.OUTPUT)
             pi.set_mode(pin_sr_clk, pigpio.OUTPUT)
             pi.set_mode(pin_sr_dat, pigpio.OUTPUT)
@@ -325,6 +314,17 @@ def pulse(pinNum: int):
         GPIO.output(pinNum, GPIO.LOW)
     # let things settle
     time.sleep(0.020)
+
+# Setup Bermad pins
+if BERMAD_STATION_OFF_ON_PINS:
+    for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
+        if gv.use_pigpio:
+            pi.set_mode(off_pin, pigpio.OUTPUT)
+            pi.set_mode(on_pin, pigpio.OUTPUT)
+        else:
+            GPIO.setup(off_pin, GPIO.OUT)
+            GPIO.setup(on_pin, GPIO.OUT)
+        pulse(off_pin)
 
 def setShiftRegister(srvals):
     """Set the state of each output pin on the shift register from the srvals list."""
