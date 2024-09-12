@@ -298,6 +298,7 @@ def enableShiftRegisterOutput():
 
 # 0.06s pulse width is for Bermad S-392T-2W
 # https://catalog.bermad.com/BERMAD%20Assets/Irrigation/Solenoids/IR-SOLENOID-S-392T-2W/IR_Accessories-Solenoid-S-392T-2W_Product-Page_English_2-2020_XSB.pdf
+# Actuated by H-Bridge L298 https://projecthub.arduino.cc/hibit/how-to-use-the-l298n-motor-driver-module-0bb697
 def pulse(pinNum: int):
     #Serial.println(String("Pulse") + String(pinNum));
     if pinNum not in gv.pin_map:
