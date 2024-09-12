@@ -1,25 +1,41 @@
 import sys
 import time
-
+import argparse
 import RPi.GPIO as GPIO
 
-def pulse(pinNum: int):
-    print(f"pulse {pinNum}", file=sys.stderr, flush=True)
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description='Pulse GPIO pins.\n\n'
+                'Example usage:\n'
+                '  python pulse_test.py 16 18 3 5 --pulse-width 1.5 --delay 0.2',
+    formatter_class=argparse.RawTextHelpFormatter
+)
+parser.add_argument('pins', metavar='N', type=int, nargs='*', default=[16, 18], help='an integer for the GPIO pin')
+parser.add_argument('--pulse-width', type=float, default=0.060, help='pulse width in seconds (default 60ms for Barmed)')
+parser.add_argument('--delay', type=float, default=5, help='delay between pulses in seconds')
+args = parser.parse_args()
+
+pins = args.pins
+pulse_width = args.pulse_width
+delay = args.delay
+
+def pulse(pinNum: int, width: float):
+    print(f"pulse {pinNum} for {width} seconds", file=sys.stderr, flush=True)
     GPIO.output(pinNum, GPIO.HIGH)
-    time.sleep(0.060) # wait for latching
+    time.sleep(width)
     GPIO.output(pinNum, GPIO.LOW)
     # let things settle
     time.sleep(0.020)
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(16, GPIO.OUT)
-GPIO.setup(18, GPIO.OUT)
+for pin in pins:
+    GPIO.setup(pin, GPIO.OUT)
 
 try:
+    print(f"to watch pin status run:  watch -d -n1 pinctrl -p -v  1-40", file=sys.stderr, flush=True)
     while True:
-        pulse(16)
-        time.sleep(2)
-        pulse(18)
-        time.sleep(2)
+        for pin in pins:
+            pulse(pin, pulse_width)
+            time.sleep(delay)
 finally:
     GPIO.cleanup()
