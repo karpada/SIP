@@ -19,7 +19,7 @@ def verify_pi():
 if verify_pi():
     gv.platform = "pi"
     # print("Pi verified")  # - test
-    
+
 try:
     import RPi.GPIO as GPIO
     gv.platform = "pi"
@@ -35,15 +35,15 @@ except ImportError:
         ]  # assume 26 pins all mapped.  Maybe we should not assume anything, but...
         gv.platform = ""  # if no platform, allows program to still run.
         print("\33[31mWARNING: No GPIO library was loaded,\nSIP will run but stations will NOT be activated.")
-        print("Please be sure either RPI.GPIO or pigpio for Python (or both) is installed.\33[0m") 
-           
+        print("Please be sure either RPI.GPIO or pigpio for Python (or both) is installed.\33[0m")
+
 # fmt: off
 if gv.platform == "pi":
     rev = GPIO.RPI_INFO['P1_REVISION']
     if rev == 1:
         # map 26 physical pins (1 based) with 0 for pins that do not have a gpio number
         if gv.use_pigpio:
-            gv.pin_map = [ #  BMC numbering 
+            gv.pin_map = [ #  BMC numbering
                 0, #  offset for 1 based numbering
                 0,  0,
                 0,  0,
@@ -169,7 +169,7 @@ if gv.platform == "pi":
 # fmt: on
 
 # (off_pin, on_pin)
-BERMAD_STATION_OFF_ON_PINS: List[Tuple[int, int]] = [(gv.pin_map[11], gv.pin_map[13]), (gv.pin_map[16], gv.pin_map[18]), (gv.pin_map[29], gv.pin_map[31])]
+BERMAD_STATION_OFF_ON_PINS: List[Tuple[int, int]] = [(gv.pin_map[11], gv.pin_map[13]), (gv.pin_map[29], gv.pin_map[31]), (gv.pin_map[35], gv.pin_map[37]), (gv.pin_map[38], gv.pin_map[40])]
 
 zone_change = signal("zone_change")
 
