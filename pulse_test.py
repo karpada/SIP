@@ -8,7 +8,9 @@ parser = argparse.ArgumentParser(
                 'Example usage:\n'
                 '  python pulse_test.py 16 18 3 5 --pulse-width 1.5 --delay 0.2\n\n'
                 'Refer to the GPIO pins layout here:\n'
-                '  https://webofthings.org/wp-content/uploads/2016/10/pi-gpio.png',
+                '  https://webofthings.org/wp-content/uploads/2016/10/pi-gpio.png\n'
+                'Watch pin status:\n'
+                '  watch -d -n1 pinctrl -p -v  1-40',
     formatter_class=argparse.RawTextHelpFormatter
 )
 parser.add_argument('pins', metavar='N', type=int, nargs='*', default=[16, 18], help='an integer for the GPIO pin')
@@ -33,7 +35,6 @@ for pin in pins:
     GPIO.setup(pin, GPIO.OUT)
 
 try:
-    print(f"to watch pin status run:  watch -d -n1 pinctrl -p -v  1-40", file=sys.stderr, flush=True)
     while True:
         for pin in pins:
             pulse(pin, pulse_width)
