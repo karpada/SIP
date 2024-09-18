@@ -195,6 +195,7 @@ try:
         GPIO.setmode(GPIO.BOARD)
         pin_rain_sense = gv.pin_map[8]
         pin_relay = gv.pin_map[10]
+        pin_bermad_relay = gv.pin_map[7]
     elif gv.platform == "bo":  # If this will run on Beagle Bone Black:
         pin_rain_sense = gv.pin_map[15]
         pin_relay = gv.pin_map[16]
@@ -316,16 +317,25 @@ def pulse(pinNum: int):
     # let things settle
     time.sleep(0.020)
 
-# Setup Bermad pins
-if BERMAD_STATION_OFF_ON_PINS:
+def set_bermad_pins_output(output: bool):
+    if gv.use_pigpio:
+        pi.set_mode(pin_bermad_relay, pigpio.OUTPUT if output else pigpio.INPUT)
+    else:
+        GPIO.setup(pin_bermad_relay, GPIO.OUT if output else GPIO.IN)
     for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
         if gv.use_pigpio:
-            pi.set_mode(off_pin, pigpio.OUTPUT)
-            pi.set_mode(on_pin, pigpio.OUTPUT)
+            pi.set_mode(off_pin, pigpio.OUTPUT if output else pigpio.INPUT)
+            pi.set_mode(on_pin, pigpio.OUTPUT if output else pigpio.INPUT)
         else:
-            GPIO.setup(off_pin, GPIO.OUT)
-            GPIO.setup(on_pin, GPIO.OUT)
+            GPIO.setup(off_pin, GPIO.OUT if output else GPIO.IN)
+            GPIO.setup(on_pin, GPIO.OUT if output else GPIO.IN)
+
+if BERMAD_STATION_OFF_ON_PINS:
+    set_bermad_pins_output(True)
+    time.sleep(0.250) # wait for H-Bridge to power up
+    for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
         pulse(off_pin)
+    set_bermad_pins_output(False)
 
 def setShiftRegister(srvals):
     """Set the state of each output pin on the shift register from the srvals list."""
@@ -371,6 +381,7 @@ def set_output():
                 1 - i for i in gv.output_srvals
             ]  #  invert logic of shift registers
         if BERMAD_STATION_OFF_ON_PINS:
+            set_bermad_pins_output(True)
             for s in range(gv.sd["nst"]):
                 station_id = gv.sd["nst"] - 1 - s
                 if station_id >= len(BERMAD_STATION_OFF_ON_PINS):
@@ -382,6 +393,7 @@ def set_output():
                     pulse(on_pin)
                 else:
                     pulse(off_pin)
+            set_bermad_pins_output(False)
         else:
             disableShiftRegisterOutput()
             setShiftRegister(gv.output_srvals)  # gv.srvals stores shift register state
