@@ -305,7 +305,7 @@ def pulse(pinNum: int):
     if pinNum not in gv.pin_map:
         print(f"pinNum {pinNum} not in gv.pin_map", file=sys.stderr, flush=True)
         return
-    print(f"pulse {pinNum}", file=sys.stderr, flush=True)
+    # print(f"pulse {pinNum}", file=sys.stderr, flush=True)
     if gv.use_pigpio:
         pi.write(pinNum, 1)
         time.sleep(0.060) # wait for latching
@@ -322,6 +322,7 @@ def set_bermad_pins_output(output: bool):
         pi.set_mode(pin_bermad_relay, pigpio.OUTPUT if output else pigpio.INPUT)
     else:
         GPIO.setup(pin_bermad_relay, GPIO.OUT if output else GPIO.IN)
+    time.sleep(0.100) # wait for H-Bridge to power up
     for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
         if gv.use_pigpio:
             pi.set_mode(off_pin, pigpio.OUTPUT if output else pigpio.INPUT)
@@ -330,12 +331,12 @@ def set_bermad_pins_output(output: bool):
             GPIO.setup(off_pin, GPIO.OUT if output else GPIO.IN)
             GPIO.setup(on_pin, GPIO.OUT if output else GPIO.IN)
 
-if BERMAD_STATION_OFF_ON_PINS:
-    set_bermad_pins_output(True)
-    time.sleep(0.250) # wait for H-Bridge to power up
-    for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
-        pulse(off_pin)
-    set_bermad_pins_output(False)
+# if BERMAD_STATION_OFF_ON_PINS:
+#     set_bermad_pins_output(True)
+#     time.sleep(0.250) # wait for H-Bridge to power up
+#     for off_pin, on_pin in BERMAD_STATION_OFF_ON_PINS:
+#         pulse(off_pin)
+#     set_bermad_pins_output(False)
 
 def setShiftRegister(srvals):
     """Set the state of each output pin on the shift register from the srvals list."""
@@ -388,11 +389,9 @@ def set_output():
                     print(f"Station {station_id} is not mapped to a BERMAD_STATION_OFF_ON_PINS pin pair", file=sys.stderr, flush=True)
                     continue
                 off_pin, on_pin = BERMAD_STATION_OFF_ON_PINS[station_id]
-                print(f"Station {station_id} (off_pin={off_pin}, on_pin={on_pin}) will be set {gv.output_srvals[station_id]} using pulse", file=sys.stderr, flush=True)
-                if gv.output_srvals[station_id]:
-                    pulse(on_pin)
-                else:
-                    pulse(off_pin)
+                pulse_pin = on_pin if gv.output_srvals[station_id] else off_pin
+                print(f"Station {station_id} (off_pin={off_pin}, on_pin={on_pin}) will be set {gv.output_srvals[station_id]} using pulse({pulse_pin})", file=sys.stderr, flush=True)
+                pulse(pulse_pin)
             set_bermad_pins_output(False)
         else:
             disableShiftRegisterOutput()
